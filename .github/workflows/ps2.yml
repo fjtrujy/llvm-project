@@ -1,0 +1,44 @@
+name: PS2 CI
+
+on:
+  push:
+  pull_request:
+  repository_dispatch:
+    types: [run_build, run_release]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Ubuntu dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install texinfo bison flex findutils ninja-build
+    
+    - name: Install Mac dependencies
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew update
+        brew install texinfo bison flex ninja
+
+    - name: Runs all the stages in the shell
+      run: |
+        export PS2DEV=$PWD/ps2dev
+        mkdir build_r5900
+        cd build_r5900
+        cmake -G Ninja \
+            -C ../clang/cmake/caches/PS2EE.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PS2DEV/llvm" \
+            -DLLVM_PARALLEL_LINK_JOBS=8 \
+            ../llvm
+        
+        ninja install
