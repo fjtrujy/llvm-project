@@ -15,7 +15,9 @@
 
 set(LLVM_TARGETS_TO_BUILD "Mips" CACHE STRING "")
 set(LLVM_ENABLE_PROJECTS "clang;lld" CACHE STRING "")
-set(LLVM_ENABLE_RUNTIMES "compiler-rt" CACHE STRING "")
+# Only build runtimes for the PS2 target, not the host
+set(LLVM_ENABLE_RUNTIMES "" CACHE STRING "")
+set(LLVM_RUNTIME_TARGETS "mips64el-scei-ps2" CACHE STRING "")
 
 set(LLVM_DEFAULT_TARGET_TRIPLE "mips64el-scei-ps2" CACHE STRING "")
 

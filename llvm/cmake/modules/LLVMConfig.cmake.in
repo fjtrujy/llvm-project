@@ -145,8 +145,13 @@ set(LLVM_DEFAULT_EXTERNAL_LIT "@LLVM_CONFIG_DEFAULT_EXTERNAL_LIT@")
 set(LLVM_LIT_ARGS "@LLVM_LIT_ARGS@")
 
 if(NOT TARGET LLVMSupport)
-  @LLVM_CONFIG_INCLUDE_EXPORTS@
-  @llvm_config_include_buildtree_only_exports@
+  # Skip loading exports on bare metal targets (CMAKE_SYSTEM_NAME=Generic)
+  # as they don't support SHARED libraries which are present in the exports.
+  # This is fine for compiler-rt builtins which don't need LLVM library targets.
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Generic")
+    @LLVM_CONFIG_INCLUDE_EXPORTS@
+    @llvm_config_include_buildtree_only_exports@
+  endif()
 endif()
 
 # By creating the following targets here, subprojects that depend on
