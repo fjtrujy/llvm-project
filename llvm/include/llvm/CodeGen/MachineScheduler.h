@@ -1429,10 +1429,6 @@ createCopyConstrainDAGMutation(const TargetInstrInfo *TII);
 /// Create the standard converging machine scheduler. This will be used as the
 /// default scheduler if the target does not set a default.
 /// Adds default DAG mutations.
-/// The bottom-up ILP-minimizing scheduler is also available to targets that
-/// have measured benefits for specific machine functions.
-LLVM_ABI ScheduleDAGInstrs *createILPMinScheduler(MachineSchedContext *C);
-
 template <typename Strategy = GenericScheduler>
 ScheduleDAGMILive *createSchedLive(MachineSchedContext *C) {
   ScheduleDAGMILive *DAG =
@@ -1445,6 +1441,10 @@ ScheduleDAGMILive *createSchedLive(MachineSchedContext *C) {
   DAG->addMutation(createCopyConstrainDAGMutation(DAG->TII));
   return DAG;
 }
+
+/// Bottom-up ILP-minimizing scheduler, for targets with measured benefits in
+/// specific machine functions.
+LLVM_ABI ScheduleDAGInstrs *createILPMinScheduler(MachineSchedContext *C);
 
 /// Create a generic scheduler with no vreg liveness or DAG mutation passes.
 template <typename Strategy = PostGenericScheduler>
