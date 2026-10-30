@@ -1,6 +1,6 @@
 ; REQUIRES: asserts
-; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
-; RUN: sed 's/, !llvm.loop !0//' %s | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -mips-r5900-compact-loop-ilp -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: sed 's/, !llvm.loop !0//' %s | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -mips-r5900-compact-loop-ilp -debug-only=mips-subtarget -o /dev/null 2>&1 | FileCheck %s --check-prefix=R5900
 ; RUN: llc -mtriple=mips64el -mcpu=mips3 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=MIPS3 --allow-empty
 ; Verify equivalent annotated and unannotated compact R5900 loops use the ILP
 ; SelectionDAG scheduler. A smaller loop and generic MIPS keep their defaults.

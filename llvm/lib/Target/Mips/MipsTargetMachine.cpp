@@ -46,6 +46,7 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Compiler.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetOptions.h"
@@ -55,6 +56,10 @@
 using namespace llvm;
 
 #define DEBUG_TYPE "mips"
+
+static cl::opt<bool> R5900HugeDispatchILPMin(
+    "mips-r5900-huge-dispatch-ilpmin", cl::Hidden, cl::init(false),
+    cl::desc("Enable experimental ILP-min scheduling in huge R5900 dispatches"));
 
 extern "C" LLVM_ABI LLVM_EXTERNAL_VISIBILITY void LLVMInitializeMipsTarget() {
   static opt::RegisterLibraryOptions<MipsOptions> O;
@@ -319,7 +324,8 @@ MipsTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
   // preserve shorter dependence chains without altering smaller kernels.
   // Restrict this policy to very large R5900 O3 dispatches; generic MIPS,
   // small dispatches, and size-optimized functions keep the normal scheduler.
-  if (MF.getSubtarget<MipsSubtarget>().isR5900() &&
+  if (R5900HugeDispatchILPMin &&
+      MF.getSubtarget<MipsSubtarget>().isR5900() &&
       getOptLevel() == CodeGenOptLevel::Aggressive && F.size() >= 2048 &&
       !F.hasOptSize() &&
       any_of(F, [](const BasicBlock &BB) {

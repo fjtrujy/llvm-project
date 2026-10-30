@@ -92,6 +92,16 @@ static cl::opt<unsigned> R5900PressureDAGMinBlocks(
     "mips-r5900-pressure-dag-min-blocks", cl::Hidden, cl::init(512),
     cl::desc("Minimum block count for opt-in R5900 pressure DAG scheduling"));
 
+static cl::opt<bool> R5900CompactLoopILP(
+    "mips-r5900-compact-loop-ilp", cl::Hidden, cl::init(false),
+    cl::desc("Enable experimental compact-loop ILP DAG scheduling"));
+static cl::opt<bool> R5900CoalescingPolicies(
+    "mips-r5900-coalescing-policies", cl::Hidden, cl::init(false),
+    cl::desc("Enable experimental R5900 function-specific coalescing"));
+static cl::opt<bool> R5900SkipIssueNops(
+    "mips-r5900-skip-issue-nops", cl::Hidden, cl::init(false),
+    cl::desc("Disable speculative issue NOPs in large R5900 dispatches"));
+
 // Very large computed-goto dispatch functions are unusually register-pressure
 // sensitive on the R5900. Prefer the bottom-up register-pressure scheduler for
 // these functions; preserve the existing source-order scheduler for smaller
@@ -109,7 +119,7 @@ createR5900DispatchDAGScheduler(SelectionDAGISel *IS,
       }
     }
   }
-  if (isCompactLoopKernel(F)) {
+  if (R5900CompactLoopILP && isCompactLoopKernel(F)) {
     LLVM_DEBUG(dbgs() << "R5900 DAG scheduler: ILP for "
                       << F.getName() << '\n');
     return createILPListDAGScheduler(IS, OptLevel);
@@ -293,6 +303,8 @@ bool MipsSubtarget::enablePostRAScheduler() const { return !isR5900(); }
 bool MipsSubtarget::enableMachineScheduler() const { return isR5900(); }
 
 bool MipsSubtarget::enableJoinGlobalCopies(const MachineFunction &MF) const {
+  if (!isR5900() || !R5900CoalescingPolicies)
+    return TargetSubtargetInfo::enableJoinGlobalCopies();
   // Medium-sized computed-goto interpreters have many long-lived scalar
   // values. Cross-block coalescing extends their live ranges and creates
   // expensive register-pressure interactions with the R5900's machine
@@ -329,7 +341,7 @@ bool MipsSubtarget::enableJoinSplitEdges(const MachineFunction &MF) const {
   // functions. This reduces live-range interference and spills in the R5900
   // register allocator without changing the policy for smaller functions.
   const Function &F = MF.getFunction();
-  if (isR5900() && isLargeDispatch(F)) {
+  if (isR5900() && R5900CoalescingPolicies && isLargeDispatch(F)) {
     LLVM_DEBUG(dbgs() << "R5900 coalescing: prioritize split edges for "
                       << F.getName() << '\n');
     return true;
@@ -343,7 +355,8 @@ bool MipsSubtarget::enableR5900IssueNops(const MachineFunction &MF) const {
   // handlers increases the code footprint and can outweigh the locally
   // estimated scheduling benefit. Keep instruction reordering, but omit
   // optional nop padding for this structural case.
-  return !isR5900() || !isLargeDispatch(MF.getFunction());
+  return !isR5900() || !R5900SkipIssueNops ||
+         !isLargeDispatch(MF.getFunction());
 }
 
 bool MipsSubtarget::enablePostRAMachineScheduler() const { return isR5900(); }

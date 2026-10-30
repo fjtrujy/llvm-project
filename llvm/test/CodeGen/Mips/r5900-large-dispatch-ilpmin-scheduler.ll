@@ -4,7 +4,7 @@
 ; MachineScheduler at -O3. Smaller functions, size-optimized functions and
 ; other MIPS CPUs retain their normal register-pressure-aware scheduler.
 ;
-; RUN: %python %S/Inputs/r5900-large-dispatch.py 2048 | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O3 -debug-only=mips -o /dev/null - 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: %python %S/Inputs/r5900-large-dispatch.py 2048 | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O3 -mips-r5900-huge-dispatch-ilpmin -debug-only=mips -o /dev/null - 2>&1 | FileCheck %s --check-prefix=R5900
 ; RUN: %python %S/Inputs/r5900-large-dispatch.py 2045 | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O3 -debug-only=mips -o /dev/null - 2>&1 | FileCheck %s --check-prefix=DEFAULT
 ; RUN: %python %S/Inputs/r5900-large-dispatch.py 2048 | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O2 -debug-only=mips -o /dev/null - 2>&1 | FileCheck %s --check-prefix=DEFAULT
 ; RUN: %python %S/Inputs/r5900-large-dispatch.py 2048 optsize | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O3 -debug-only=mips -o /dev/null - 2>&1 | FileCheck %s --check-prefix=DEFAULT

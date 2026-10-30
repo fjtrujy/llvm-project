@@ -1,5 +1,5 @@
 ; REQUIRES: asserts
-; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -mips-r5900-coalescing-policies -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
 ; RUN: llc -mtriple=mips64el -mcpu=mips3 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=MIPS3 --allow-empty
 ; Medium-sized computed-goto dispatches avoid cross-block register coalescing.
 ; Ordinary small functions and non-R5900 CPUs keep their existing policy.
