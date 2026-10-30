@@ -529,15 +529,9 @@ PassBuilder::buildFunctionSimplificationPipeline(OptimizationLevel Level,
   if (EnableKnowledgeRetention)
     FPM.addPass(AssumeSimplifyPass());
 
-  // Hoisting of scalars and load expressions. On R5900 at -O3, hoisting
-  // equivalent loads from both sides of a branch can also expose independent
-  // work for the branch delay slot, rather than leaving it as a NOP. Keep the
-  // default pipeline unchanged for other MIPS processors and optimization
-  // levels.
-  const bool EnableR5900GVNHoist =
-      TM && TM->getTargetTriple().isMIPS() && TM->getTargetCPU() == "r5900" &&
-      Level == OptimizationLevel::O3;
-  if (Opts.enable_gvn_hoist || EnableR5900GVNHoist)
+  // Keep GVNHoist opt-in for all targets. In particular, enabling it by
+  // default for R5900 regressed matrix-vector multiplication on real PS2.
+  if (Opts.enable_gvn_hoist)
     FPM.addPass(GVNHoistPass());
 
   // Global value numbering based sinking.

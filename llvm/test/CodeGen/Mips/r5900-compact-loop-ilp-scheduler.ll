@@ -1,10 +1,11 @@
 ; REQUIRES: asserts
 ; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: sed 's/, !llvm.loop !0//' %s | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null 2>&1 | FileCheck %s --check-prefix=R5900
 ; RUN: llc -mtriple=mips64el -mcpu=mips3 -target-abi=n32 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=MIPS3 --allow-empty
-; Verify compact R5900 loops use the ILP SelectionDAG scheduler while a
-; similarly sized non-loop CFG and generic MIPS preserve existing behavior.
+; Verify equivalent annotated and unannotated compact R5900 loops use the ILP
+; SelectionDAG scheduler. A smaller loop and generic MIPS keep their defaults.
 ; R5900-DAG: R5900 DAG scheduler: ILP for compact_loop
-; R5900-DAG: R5900 DAG scheduler: source for ordinary_blocks
+; R5900-DAG: R5900 DAG scheduler: ILP for ordinary_blocks
 ; R5900-DAG: R5900 DAG scheduler: source for light_loop
 ; MIPS3-NOT: R5900 DAG scheduler:
 declare void @observe(i32)

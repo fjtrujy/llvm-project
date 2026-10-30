@@ -1,5 +1,6 @@
 ; REQUIRES: asserts
 ; RUN: llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O2 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=R5900
+; RUN: sed 's/, !llvm.loop !0//' %s | llc -mtriple=mips64el -mcpu=r5900 -target-abi=n32 -O2 -debug-only=mips-subtarget -o /dev/null 2>&1 | FileCheck %s --check-prefix=R5900
 ; RUN: llc -mtriple=mips64el -mcpu=mips3 -target-abi=n32 -O2 -debug-only=mips-subtarget -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=MIPS3 --allow-empty
 ;
 ; A compact PHI-heavy loop must use local copy coalescing only on R5900;

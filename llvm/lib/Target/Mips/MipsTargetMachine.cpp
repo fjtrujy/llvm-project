@@ -327,7 +327,11 @@ MipsTargetMachine::createMachineScheduler(MachineSchedContext *C) const {
       })) {
     LLVM_DEBUG(dbgs() << "R5900 MachineScheduler: ILP-min for " << F.getName()
                       << '\n');
-    return createILPMinScheduler(C);
+    // The ILP-min implementation uses ScheduleDAGMILive, like the default
+    // R5900 scheduler, so it must receive the same register-class mutation.
+    auto *DAG = static_cast<ScheduleDAGMILive *>(createILPMinScheduler(C));
+    DAG->addMutation(createSingleRegClassOrderMutation());
+    return DAG;
   }
 
   LLVM_DEBUG(dbgs() << "Mips MachineScheduler: normal for " << F.getName()

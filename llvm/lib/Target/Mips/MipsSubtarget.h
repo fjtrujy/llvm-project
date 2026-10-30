@@ -251,8 +251,6 @@ public:
   bool enableJoinGlobalCopies(const MachineFunction &MF) const override;
   bool enableJoinSplitEdges(const MachineFunction &MF) const override;
   bool enableR5900IssueNops(const MachineFunction &MF) const;
-  bool enableBranchFolderBlockReordering(
-      const MachineFunction &MF) const override;
   RegisterScheduler::FunctionPassCtor
   getDAGScheduler(CodeGenOptLevel OptLevel) const override;
   bool enablePostRAMachineScheduler() const override;
