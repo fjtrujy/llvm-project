@@ -31,7 +31,7 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Option/LibraryOptions.h"
-#include "llvm/Support/BranchProbability.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -83,6 +83,15 @@ static bool isCompactLoopKernel(const Function &F) {
   return NumInstructions >= 160 && hasSingleLoopBackedge(F);
 }
 
+// Remain opt-in until benefits have been reproduced outside the NJEMU
+// dispatcher. The block threshold is adjustable for small codegen tests.
+static cl::opt<bool> R5900PressureDAG(
+    "mips-r5900-pressure-dag", cl::Hidden, cl::init(false),
+    cl::desc("Try pressure-aware DAG scheduling in large R5900 dispatches"));
+static cl::opt<unsigned> R5900PressureDAGMinBlocks(
+    "mips-r5900-pressure-dag-min-blocks", cl::Hidden, cl::init(512),
+    cl::desc("Minimum block count for opt-in R5900 pressure DAG scheduling"));
+
 // Very large computed-goto dispatch functions are unusually register-pressure
 // sensitive on the R5900. Prefer the bottom-up register-pressure scheduler for
 // these functions; preserve the existing source-order scheduler for smaller
@@ -91,10 +100,14 @@ static ScheduleDAGSDNodes *
 createR5900DispatchDAGScheduler(SelectionDAGISel *IS,
                                 CodeGenOptLevel OptLevel) {
   const Function &F = IS->MF->getFunction();
-  if (isLargeDispatch(F)) {
-    LLVM_DEBUG(dbgs() << "R5900 DAG scheduler: register pressure for "
-                      << F.getName() << '\n');
-    return createBURRListDAGScheduler(IS, OptLevel);
+  if (R5900PressureDAG && F.size() >= R5900PressureDAGMinBlocks) {
+    for (const BasicBlock &BB : F) {
+      if (isa<IndirectBrInst>(BB.getTerminator())) {
+        LLVM_DEBUG(dbgs() << "R5900 DAG scheduler: register pressure for "
+                          << F.getName() << '\n');
+        return createBURRListDAGScheduler(IS, OptLevel);
+      }
+    }
   }
   if (isCompactLoopKernel(F)) {
     LLVM_DEBUG(dbgs() << "R5900 DAG scheduler: ILP for "
