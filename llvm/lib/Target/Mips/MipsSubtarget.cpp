@@ -95,6 +95,7 @@ bool MipsSubtarget::enableJoinGlobalCopies(const MachineFunction &MF) const {
     return false;
   }
   return TargetSubtargetInfo::enableJoinGlobalCopies();
+}
 
 // Remain opt-in until benefits have been reproduced outside the NJEMU
 // dispatcher. The block threshold is adjustable for small codegen tests.
