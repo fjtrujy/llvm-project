@@ -249,6 +249,8 @@ public:
   bool enablePostRAScheduler() const override;
   bool enableMachineScheduler() const override;
   bool enableJoinGlobalCopies(const MachineFunction &MF) const override;
+  RegisterScheduler::FunctionPassCtor
+  getDAGScheduler(CodeGenOptLevel OptLevel) const override;
   bool enablePostRAMachineScheduler() const override;
   bool useAA() const override;
   // Software pipelining of R5900 VU0, FPU and MMI loops (MipsInstrInfo::
